@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWT Revision</title>
+<style>
+  html,body{height:100%;margin:0}
+  body{background:#0f172a;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;display:flex;align-items:center;justify-content:center}
+  .box{width:min(420px,86vw);text-align:center}
+  h1{font-size:1.15rem;font-weight:600;margin:0 0 .25rem}
+  p{color:#94a3b8;font-size:.85rem;margin:.15rem 0 1.25rem}
+  .bar{height:8px;background:#1e293b;border-radius:99px;overflow:hidden}
+  .fill{height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#0ea5e9);transition:width .2s ease}
+  .pct{margin-top:.6rem;font-size:.8rem;color:#94a3b8}
+  .err{color:#f87171;font-size:.85rem;margin-top:1rem;display:none}
+  a{color:#38bdf8}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>SWT Revision</h1>
+  <p>Loading&hellip; please wait</p>
+  <div class="bar"><div class="fill" id="fill"></div></div>
+  <div class="pct" id="pct">0%</div>
+  <div class="err" id="err"></div>
+  <p style="margin-top:1rem"><a href="index.html">&larr; Back to Question Bank</a></p>
+</div>
+<script>
+(async function(){
+  const parts = ["SWT_Revision.part1", "SWT_Revision.part2", "SWT_Revision.part3"];
+  const fill = document.getElementById('fill');
+  const pct  = document.getElementById('pct');
+  const err  = document.getElementById('err');
+  try{
+    const buffers = [];
+    for(let i=0;i<parts.length;i++){
+      const res = await fetch(parts[i], {cache:'force-cache'});
+      if(!res.ok) throw new Error('Failed to load ' + parts[i] + ' (' + res.status + ')');
+      buffers.push(await res.arrayBuffer());
+      const p = Math.round(((i+1)/parts.length)*100);
+      fill.style.width = p + '%'; pct.textContent = p + '%';
+    }
+    let total=0; for(const b of buffers) total+=b.byteLength;
+    const merged = new Uint8Array(total);
+    let off=0; for(const b of buffers){ merged.set(new Uint8Array(b), off); off+=b.byteLength; }
+    const html = new TextDecoder('utf-8').decode(merged);
+    document.open(); document.write(html); document.close();
+  }catch(e){
+    err.style.display='block';
+    err.textContent = e.message || 'Failed to load content.';
+  }
+})();
+</script>
+</body>
+</html>
