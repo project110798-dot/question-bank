@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -27,29 +27,30 @@
   <p style="margin-top:1rem"><a href="index.html">&larr; Back to Question Bank</a></p>
 </div>
 <script>
-(async function(){
-  const parts = ["doc_tut_ss_test.part1", "doc_tut_ss_test.part2", "doc_tut_ss_test.part3", "doc_tut_ss_test.part4"];
-  const fill = document.getElementById('fill');
-  const pct  = document.getElementById('pct');
-  const err  = document.getElementById('err');
-  try{
-    const buffers = [];
-    for(let i=0;i<parts.length;i++){
-      const res = await fetch(parts[i], {cache:'force-cache'});
-      if(!res.ok) throw new Error('Failed to load ' + parts[i] + ' (' + res.status + ')');
-      buffers.push(await res.arrayBuffer());
-      const p = Math.round(((i+1)/parts.length)*100);
-      fill.style.width = p + '%'; pct.textContent = p + '%';
-    }
-    let total=0; for(const b of buffers) total+=b.byteLength;
-    const merged = new Uint8Array(total);
-    let off=0; for(const b of buffers){ merged.set(new Uint8Array(b), off); off+=b.byteLength; }
-    const html = new TextDecoder('utf-8').decode(merged);
-    document.open(); document.write(html); document.close();
-  }catch(e){
-    err.style.display='block';
-    err.textContent = e.message || 'Failed to load content.';
+(function(){
+  var parts = ["doc_tut_ss_test.part1.js", "doc_tut_ss_test.part2.js", "doc_tut_ss_test.part3.js", "doc_tut_ss_test.part4.js"];
+  var fill = document.getElementById('fill');
+  var pct  = document.getElementById('pct');
+  var err  = document.getElementById('err');
+  var i = 0;
+  function progress(){ var p = Math.round((i/parts.length)*100); fill.style.width=p+'%'; pct.textContent=p+'%'; }
+  function assemble(){
+    try{
+      var html = (window.__QBPARTS||[]).join('');
+      window.__QBPARTS = null;
+      document.open(); document.write(html); document.close();
+    }catch(e){ fail(e.message||'Could not render content.'); }
   }
+  function fail(msg){ err.style.display='block'; err.textContent = msg; }
+  function next(){
+    if(i>=parts.length){ progress(); assemble(); return; }
+    var s = document.createElement('script');
+    s.src = parts[i];
+    s.onload = function(){ i++; progress(); next(); };
+    s.onerror = function(){ fail('Failed to load ' + parts[i] + '. Make sure the .part files are in the same folder.'); };
+    document.head.appendChild(s);
+  }
+  next();
 })();
 </script>
 </body>

@@ -1,0 +1,2 @@
+# Preserve exact bytes of the split-content chunks (no EOL conversion)
+*.part*.js -text
